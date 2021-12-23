@@ -4,9 +4,9 @@
   "description": "RESTful API endpoint to allow search in multiple clinic providers and display results from all the available clinics",
   "main": "index.js",
   "scripts": {
-    "dev": "nodemon src/index.js",
-    "start": "node src/index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "nodemon src/app.js",
+    "start": "node src/app.js",
+    "test": "jest --watchAll"
   },
   "keywords": [
     "scratchpay",
@@ -31,7 +31,12 @@
     "babel-preset-env": "^1.7.0",
     "jest": "^27.4.5",
     "nodemon": "^2.0.15",
-    "superagent": "^6.1.0",
     "supertest": "^6.1.6"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "coveragePathIgnorePatterns": [
+      "/node_modules/"
+    ]
   }
 }
