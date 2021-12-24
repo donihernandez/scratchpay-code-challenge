@@ -1,10 +1,20 @@
 const express = require("express");
 const router = express.Router();
+const axios = require('axios');
 
 router.post("/search", async (req, res) => {
   try {
-    const { name, clinicName, availability, opening, stateName, stateCode } =
-      req.body;
+    const {
+      name,
+      clinicName,
+      availability,
+      opening,
+      stateName,
+      stateCode
+    } =
+    req.body;
+    let isVetSelected = false;
+    let isDentalSelected = false;
     let clinics = [];
 
     let dentalClinics = await axios
@@ -22,45 +32,53 @@ router.post("/search", async (req, res) => {
         return res.status(500).send(err);
       });
 
+    dentalClinics = dentalClinics.data;
+    vetClinics = vetClinics.data;
+
     if (name || availability || stateName) {
-      dentalClinics = dentalClinics.data.filter((clinic) => {
-        let results = [];
+      isDentalSelected = true;
+      dentalClinics = dentalClinics.filter((clinic) => {
         if (
-          (name && clinic.name.toLowerCase().includes(name.toLowerCase())) ||
-          (availability && (clinic.availability.from === opening.from || clinic.availability.to === opening.to)) ||
+          (name && clinic.name.toLowerCase() === name.toLowerCase()) ||
+          (availability && (clinic.availability.from === availability.from || clinic.availability.to === availability.to)) ||
           (stateName &&
-            clinic.stateName.toLowerCase().includes(stateName.toLowerCase()))
+            clinic.stateName.toLowerCase() === stateName.toLowerCase())
         ) {
-          results.push(clinic);
+          return clinic;
         }
-        return results;
       });
     }
     if (clinicName || opening || stateCode) {
-      vetClinics = vetClinics.data.filter((clinic) => {
-        let results = [];
+      isVetSelected = true;
+      vetClinics = vetClinics.filter((clinic) => {
         if (
           (clinicName &&
             clinic.clinicName
-              .toLowerCase()
-              .includes(clinicName.toLowerCase())) ||
-          (opening && (clinic.opening.from === opening.from 
-            || clinic.opening.to === opening.to)) ||
+            .toLowerCase()
+             === clinicName.toLowerCase()) ||
+          (opening && (clinic.opening.from === opening.from ||
+            clinic.opening.to === opening.to)) ||
           (stateCode && clinic.stateCode === stateCode)
         ) {
-          results.push(clinic);
+          return clinic;
         }
-        return results;
       });
     }
 
-    clinics = [...dentalClinics.data, ...vetClinics.data];
+    if (isDentalSelected && !isVetSelected) {
+      clinics = [...dentalClinics]
+    } else if (!isDentalSelected && isVetSelected) {
+      clinics = [...vetClinics];
+    } else {
+      clinics = [...dentalClinics, ...vetClinics];
+    }
 
-    res.status(200).json({
-        clinics
+    return res.status(200).send({
+      clinics
     });
+
   } catch (error) {
-    res.status(500).send(error);
+    return res.status(500).send(error);
   }
 });
 
